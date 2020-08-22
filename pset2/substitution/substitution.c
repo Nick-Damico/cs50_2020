@@ -3,11 +3,13 @@
 #include <string.h>
 
 // Constants
-#define MAX_LENGTH 10
+#define LOWERCASE_OFFSET 97
+#define UPPERCASE_OFFSET 65
 
 // Declare functions for use in main.
-string encrypt_text(string plain_text, string key);
-int calc_letter_offset(char letter);
+char encrypt_char(char letter, string key);
+int calc_char_offset(char letter);
+int is_alpha_char(char letter);
 int valid_key(string key);
 int valid_arg_length(int length);
 
@@ -27,14 +29,23 @@ int main(int argc, string argv[])
     if (!valid_key(key))
     {
         printf("Key must contain 26 characters.\n");
+        return 1;
     }
 
     //  Prompt user for "Plaintext: "
     //  [√] 1. User will provide Plaintext for encryption.
-    string plain_text = get_string("Plaintext: ");
 
-    //  Encipher
-    string encrypted_text = encrypt_text(plain_text, key);
+    string plain_text = get_string("plaintext: ");
+
+    int str_len = strlen(plain_text);
+    char encrypted_chars[str_len];
+
+    for (int i = 0; i < str_len; i++)
+    {
+        char encrypted_char = encrypt_char(plain_text[i], key);
+        encrypted_chars[i] = encrypted_char;
+    }
+
     //  [] 1. For each character, determine what letter it maps to.
     //  [] 2. Preserve case.
     //  [] 3. Leave non-alphabetic characters as-is.
@@ -44,41 +55,63 @@ int main(int argc, string argv[])
     //  [] 2. Preserve case.
     //  [] 3. Leave non-alphabetic characters as-is.
 
-    // code here
-    printf("first: %i\n", argc);
-    printf("second: %s\n", argv[1]);
+    // Return encrypted msg.
+    printf("ciphertext: ");
+    for (int j = 0; j < str_len; j++)
+    {
+        printf("%c", encrypted_chars[j]);
+    }
+    printf("\n");
+    return 0;
 }
 
+////////////////////
 // Helper functions
-string encrypt_text(string plain_text, string key)
+////////////////////
+
+// Encrypts letter with provided key,
+// if valid character.
+// Ignores non Alphabetical characters.
+char encrypt_char(char letter, string key)
 {
-   printf("\n");
-   // Example: hello, world => jrssb, ybwsp
-   // 1. iterate over plain_text.
-   // 2. use key to convert plaint_text letters.
-   for (int i = 0, length = strlen(plain_text); i < length; i++)
-   {
-       // 1. find difference(n) between letter and key.
-       // h (104)
-       int letter_offset = calc_letter_offset(plain_text[i]);
-       printf("Character offset: %i\n", letter_offset);
-   }
-   return plain_text;
+    if (is_alpha_char(letter))
+    {
+       return key[calc_char_offset(letter)];
+    }
+    else {
+       return letter;
+    }
 }
 
-int calc_letter_offset(char letter)
+// Return true or false if letter is a Alphabetical character.
+int is_alpha_char(char letter)
+{
+    if ((letter >= 65 && letter <= 90) || (letter >= 97 && letter <= 122))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+// Adjust ASCII count of provided character.
+// The offset adjusts the characters value to
+// be inline with a 0 index array, so we can match
+// charaters to the cipher (string) key provided.
+// example 65 = A, this gets offset to 0.
+int calc_char_offset(char letter)
 {
     int match;
-    int lower_offset = 65;
-    int upper_offset = 97;
 
     if (letter >= 65 && letter <= 90)
     {
-       match = letter - lower_offset;
+       match = letter - UPPERCASE_OFFSET;
     }
     else if (letter >= 97 && letter <= 122)
     {
-        match = letter - upper_offset;
+        match = letter - LOWERCASE_OFFSET;
     }
     else
     {
@@ -94,10 +127,11 @@ int valid_key(string key)
     //  [√] 1. Check key length.
     //  [] 2. Check for non-alphabetic characters.
     //  [] 3. Check for repeated characters (case-insensitive).
-    int length = strlen(key);
-    int valid = 1;
-    printf("String Length: %i\n", length);
-
+    int valid = 0;
+    if (strlen(key) == 26)
+    {
+        valid = 1;
+    }
     return valid;
 }
 
