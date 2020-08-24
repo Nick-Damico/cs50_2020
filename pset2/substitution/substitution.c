@@ -3,64 +3,65 @@
 #include <string.h>
 
 // Constants
-#define LOWERCASE_OFFSET 97
-#define UPPERCASE_OFFSET 65
+#define MAX_STR_LEN 26
+#define LOWER_OFFSET 97
+#define LOWER_MIN 97
+#define LOWER_MAX 122
+#define UPPER_OFFSET 65
+#define UPPER_MIN 65
+#define UPPER_MAX 90
 
-// Declare functions for use in main.
-char encrypt_char(char letter, string key);
+// Declare Functions
 int calc_char_offset(char letter);
+char encrypt_char(char letter, string key);
+int is_lower(char letter);
+int is_upper(char letter);
 int is_alpha_char(char letter);
+char normalize_char(char letter);
+void print_array(char text[], int length);
 int valid_key(string key);
 int valid_arg_length(int length);
 
 int main(int argc, string argv[])
 {
-    // [√] valid args.
-    //  1. Make sure only 1 argument is provided.
-    //  2. if more than (1) arg provided error msg.
-    //     and return (1) from main.
+    // [√] validate args.
     if (!valid_arg_length(argc))
     {
-        printf("Error: provide 1 argument with program call.\n");
+        printf("Usage: ./substitution key\n");
         return 1;
     }
+
+    // [√] normalize key
+    // Easier to handle and validate once
+    // normalized to all upper case letters.
     string key = argv[1];
-
-    if (!valid_key(key))
+    char normalized_key[MAX_STR_LEN];
+    for (int i = 0; i < MAX_STR_LEN; i++)
     {
-        printf("Key must contain 26 characters.\n");
+        normalized_key[i] = normalize_char(key[i]);
+    }
+
+    //  [√] Validate Key
+    if (!valid_key(normalized_key))
+    {
+        printf("Key must contain %i characters.\n", MAX_STR_LEN);
         return 1;
     }
 
-    //  Prompt user for "Plaintext: "
-    //  [√] 1. User will provide Plaintext for encryption.
-
+    // [√] Prompt user for phrase.
     string plain_text = get_string("plaintext: ");
-
     int str_len = strlen(plain_text);
+    // [√] Encrypt user provided phrase.
     char encrypted_chars[str_len];
-
     for (int i = 0; i < str_len; i++)
     {
-        char encrypted_char = encrypt_char(plain_text[i], key);
-        encrypted_chars[i] = encrypted_char;
+        encrypted_chars[i] = encrypt_char(plain_text[i], normalized_key);
     }
 
-    //  [] 1. For each character, determine what letter it maps to.
-    //  [] 2. Preserve case.
-    //  [] 3. Leave non-alphabetic characters as-is.
-
-    //  Encipher
-    //  [] 1. For each character, determine what letter it maps to.
-    //  [] 2. Preserve case.
-    //  [] 3. Leave non-alphabetic characters as-is.
-
-    // Return encrypted msg.
+    // [√] Print encrypted phrase.
+    printf("\n");
     printf("ciphertext: ");
-    for (int j = 0; j < str_len; j++)
-    {
-        printf("%c", encrypted_chars[j]);
-    }
+    print_array(encrypted_chars, str_len);
     printf("\n");
     return 0;
 }
@@ -69,33 +70,6 @@ int main(int argc, string argv[])
 // Helper functions
 ////////////////////
 
-// Encrypts letter with provided key,
-// if valid character.
-// Ignores non Alphabetical characters.
-char encrypt_char(char letter, string key)
-{
-    if (is_alpha_char(letter))
-    {
-       return key[calc_char_offset(letter)];
-    }
-    else {
-       return letter;
-    }
-}
-
-// Return true or false if letter is a Alphabetical character.
-int is_alpha_char(char letter)
-{
-    if ((letter >= 65 && letter <= 90) || (letter >= 97 && letter <= 122))
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
 // Adjust ASCII count of provided character.
 // The offset adjusts the characters value to
 // be inline with a 0 index array, so we can match
@@ -103,39 +77,119 @@ int is_alpha_char(char letter)
 // example 65 = A, this gets offset to 0.
 int calc_char_offset(char letter)
 {
-    int match;
-
-    if (letter >= 65 && letter <= 90)
+    if (is_upper(letter))
     {
-       match = letter - UPPERCASE_OFFSET;
+        return letter - UPPER_OFFSET;
     }
-    else if (letter >= 97 && letter <= 122)
+    else if (is_lower(letter))
     {
-        match = letter - LOWERCASE_OFFSET;
+        return letter - LOWER_OFFSET;
     }
     else
     {
-        match = 0;
+        return 0;
     }
-
-    return match;
 }
 
-int valid_key(string key)
+// Returns the encryption key value for
+// the supplied letter if it is a valid
+// alphabetical character.
+char encrypt_char(char letter, string key)
 {
-    //  valid Key
-    //  [√] 1. Check key length.
-    //  [] 2. Check for non-alphabetic characters.
-    //  [] 3. Check for repeated characters (case-insensitive).
-    int valid = 0;
-    if (strlen(key) == 26)
+    // TODO: Add handling of upper and lower chars.
+    // 1. Guard clause against invalid chars return 0;
+    if (!is_alpha_char(letter))
     {
-        valid = 1;
+        return letter;
     }
-    return valid;
+
+    // From this point on all are valid alpha chars.
+    char encrypted_char = key[calc_char_offset(letter)];
+    if (is_lower(letter))
+    {
+        return encrypted_char + 32;
+    }
+    else
+    {
+        return encrypted_char;
+    }
 }
 
+// Return true or false if letter is a Alphabetical character.
+int is_alpha_char(char letter)
+{
+    return is_upper(letter) || is_lower(letter) ? 1 : 0;
+}
+//  Determines if letter is an ASCII upper character.
+int is_upper(char letter)
+{
+    return letter >= UPPER_MIN && letter <= UPPER_MAX ? 1 : 0;
+}
+
+//  Determines if letter is an ASCII lower character.
+int is_lower(char letter)
+{
+    return letter >= LOWER_MIN && letter <= LOWER_MAX ? 1 : 0;
+}
+
+// Normalize alphabetical character to upper.
+char normalize_char(char letter)
+{
+    if (is_lower(letter))
+    {
+        return letter - 32;
+    }
+    else
+    {
+        return letter;
+    }
+}
+
+//  Just a helper function to print out
+//  contents of an array on single line.
+void print_array(char text[], int length)
+{
+    for (int i = 0; i < length; i++)
+    {
+        printf("%c", text[i]);
+    }
+}
+
+//  Make sure only 1 argument is provided.
 int valid_arg_length(int length)
 {
     return length == 2  ? 1 : 0;
+}
+
+//  Validate Key
+//  Works best with a normalized key.
+int valid_key(string key)
+{
+    //  [√] 1. Check key length.
+    int valid = 1;
+    int key_len = strlen(key);
+    if (key_len != MAX_STR_LEN)
+    {
+        valid = 0;
+    }
+    for (int i = 0; i < key_len; i++)
+    {
+        //  [√] 2. Check for non-alphabetic characters.
+        if (!is_lower(key[i]) && !is_upper(key[i]))
+        {
+            valid = 0;
+        }
+        //  [√] 3. Check for repeated characters (case-insensitive).
+        for (int j = 0; j < key_len; j++)
+        {
+            if (j != i)
+            {
+                if (key[j] == key[i])
+                {
+                    valid = 0;
+                }
+            }
+        }
+    }
+    return valid;
 }
