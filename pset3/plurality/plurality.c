@@ -2,10 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-// Max number of candidates
-#define MAX 9
+#define MAX_CANDIDATE 9
 
-// Candidates have name and vote count
+// Candidate
 typedef struct
 {
     string name;
@@ -13,8 +12,7 @@ typedef struct
 }
 candidate;
 
-// Array of candidates
-candidate candidates[MAX];
+candidate candidates[MAX_CANDIDATE];
 
 // Number of candidates
 int candidate_count;
@@ -34,12 +32,11 @@ int main(int argc, string argv[])
     }
 
     // Populate array of candidates
-    candidate_count = argc - 1;
-    if (candidate_count > MAX)
-    {
-        printf("Maximum number of candidates is %i\n", MAX);
+    if (candidate_count > MAX_CANDIDATE)
+        printf("Maximum number of candidates is %i\n", MAX_CANDIDATE);
         return 2;
     }
+
     for (int i = 0; i < candidate_count; i++)
     {
         candidates[i].name = argv[i + 1];
@@ -67,17 +64,17 @@ int main(int argc, string argv[])
 // Update vote totals given a new vote
 bool vote(string name)
 {
-    // TODO
-    // 1. The name argument is the name of a candidate.
-    // 2. If you match the name to a candidate in the candidates array. then return true.
-    // 3. If it does not match, return false.
+    // Verifies that a user supplied candidate vote(name)
+    // is valid, increments the vote returns true.
+    // Invalid votes do not increment and return false.
     bool valid = false;
     for (int i = 0; i < candidate_count; i++)
     {
-       if (strcmp(candidates[i].name, name))
-       {
-        valid = true;
-       }
+        if (strcmp(candidates[i].name, name) == 0)
+        {
+            candidates[i].votes += 1;
+            valid = true;
+        }
     }
     return valid;
 }
@@ -85,21 +82,27 @@ bool vote(string name)
 // Print the winner (or winners) of the election
 void print_winner(void)
 {
-    // TODO
-    // 1. Determine the candidate with the greatest amount of votes.
-    // 2. Print the winners hane on a newline.
-    // 3. Ties are a possibility, If this is the case output both names on separate lines.
-    return;
-}
+    // Iterate over candidate votes counts tracking
+    // the current largest count.
+    // winner_indices trackes multiple candidates as
+    // there is a potential for a tie.
+    int winner_count = 0;
+    int largest_count = 0;
+    int winner_indices[candidate_count];
 
-candidate linear_search(candidate list[])
-{
-    return candidates[0];
+    for (int i = 0; i < candidate_count; i++)
+    {
+        if (candidates[i].votes >= largest_count)
+        {
+            largest_count = candidates[i].votes;
+            winner_indices[i] = i;
+            winner_count++;
+        }
+    }
+
+    for (int i = 0; i < winner_count; i++)
+    {
+        printf("%s\n", candidates[winner_indices[i]].name);
+    }
+    printf("\n");
 }
-// Example of completed program usage and output.
-// $ ./plurality Alice Bob
-// Number of voters: 3
-// Vote: Alice
-// Vote: Bob
-// Vote: Alice
-// Alice
